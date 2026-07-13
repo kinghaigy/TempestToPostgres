@@ -6,9 +6,10 @@
 #   sudo ./install.sh
 #
 # What it does:
-#   1. Copies settings_sample.conf → settings.conf if settings.conf is absent.
-#   2. Generates /etc/systemd/system/tempest-logger.service from the template.
-#   3. Reloads systemd and enables the service to start on boot.
+#   1. Creates a Python virtual environment at .venv/ and installs dependencies.
+#   2. Copies settings_sample.conf → settings.conf if settings.conf is absent.
+#   3. Generates /etc/systemd/system/tempest-logger.service from the template.
+#   4. Reloads systemd and enables the service to start on boot.
 #
 # The service is NOT started automatically so you can review/edit settings.conf
 # first.  Start it manually when ready:
@@ -51,19 +52,24 @@ fi
 echo "Using Python: ${PYTHON_BIN}"
 
 # ---------------------------------------------------------------------------
-# Verify psycopg2 is importable for the target user
+# Create virtual environment and install dependencies
 # ---------------------------------------------------------------------------
-if ! sudo -u "${SERVICE_USER}" "${PYTHON_BIN}" -c "import psycopg2" 2>/dev/null; then
-    echo "WARNING: psycopg2 is not installed for user '${SERVICE_USER}'."
-    echo "         Install it with:  pip install psycopg2-binary"
-    echo "         Then re-run this script, or start the service manually."
+VENV_DIR="${INSTALL_DIR}/.venv"
+if [[ ! -d "${VENV_DIR}" ]]; then
+    echo "Creating virtual environment at ${VENV_DIR} ..."
+    sudo -u "${SERVICE_USER}" "${PYTHON_BIN}" -m venv "${VENV_DIR}"
 fi
+echo "Installing dependencies into virtual environment ..."
+sudo -u "${SERVICE_USER}" "${VENV_DIR}/bin/pip" install -q -r "${INSTALL_DIR}/requirements.txt"
+PYTHON_BIN="${VENV_DIR}/bin/python3"
+echo "Using venv Python: ${PYTHON_BIN}"
 
 # ---------------------------------------------------------------------------
 # Copy sample config if settings.conf does not yet exist
 # ---------------------------------------------------------------------------
 if [[ ! -f "${SETTINGS}" ]]; then
     cp "${SETTINGS_SAMPLE}" "${SETTINGS}"
+    chown "${SERVICE_USER}" "${SETTINGS}"
     echo "Created ${SETTINGS} from template."
     echo ""
     echo "  *** ACTION REQUIRED ***"

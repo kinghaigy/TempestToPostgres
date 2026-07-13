@@ -1,3 +1,4 @@
 settings.conf
 __pycache__/
 *.pyc
+.venv/
