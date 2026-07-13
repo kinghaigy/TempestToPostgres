@@ -1,6 +1,8 @@
 # TempestToPostgres
 
-Listens for [Tempest Weather Station UDP broadcasts](https://apidocs.tempestwx.com/reference/tempest-udp-broadcast) on port 50222 and inserts a timestamped row into PostgreSQL on every observation.
+Listens for [Tempest Weather Station UDP broadcasts](https://apidocs.tempestwx.com/reference/tempest-udp-broadcast) on port 50222 and inserts a timestamped row into PostgreSQL on every observation (every 60s). There are other observations (like high wind events, lighting strike events, but these are ignored). 
+
+This was a fully vibed project to get something going fast. Any issues, blame OpenAI. Hopefully this is of use to someone else. 
 
 ## What gets recorded
 
