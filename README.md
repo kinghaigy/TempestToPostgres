@@ -25,13 +25,7 @@ The `daily_rain` value is a running sum of per-minute rain that resets at 09:00 
 
 ## Quick start
 
-### 1. Install Python dependency
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Configure
+### 1. Configure
 
 ```bash
 cp settings_sample.conf settings.conf
@@ -40,7 +34,7 @@ $EDITOR settings.conf
 
 Set `connection_url` in `[database]` and adjust the `[column_mapping]` section to match your table's column names.
 
-### 3. Create the database table
+### 2. Create the database table
 
 Example DDL using the default column names from `settings_sample.conf`:
 
@@ -58,21 +52,23 @@ CREATE TABLE weather_observations (
 );
 ```
 
-### 4. Run manually (test)
+### 3. Install as a systemd service
 
-```bash
-python3 tempest_logger.py
-```
-
-### 5. Install as a systemd service
-
-The systemd service looks for the config and python file where this script is run so place the files where you plan to keep them long term before running ./install.sh
+The install script creates a virtual environment in `.venv/`, installs the Python dependencies there, copies the sample config if needed, and installs the systemd service. Keep the project files in the directory you want to run from long term before running `./install.sh`.
 
 ```bash
 sudo ./install.sh
 # Edit settings.conf if you haven't already, then:
 sudo systemctl start tempest-logger
 sudo journalctl -u tempest-logger -f
+```
+
+### 4. Run manually (test)
+
+Use the virtual environment created by the installer if you want to run the logger directly:
+
+```bash
+./.venv/bin/python3 tempest_logger.py
 ```
 
 ---
