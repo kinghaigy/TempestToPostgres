@@ -46,7 +46,25 @@ SERVICE_USER="${SUDO_USER:-$(whoami)}"
 # ---------------------------------------------------------------------------
 if ! dpkg -s python3-full &>/dev/null; then
     echo "Installing python3-full via apt ..."
+    apt-get update
     apt-get install -y python3-full
+fi
+
+# ---------------------------------------------------------------------------
+# Ensure build dependencies for psycopg2 are available.
+# Some ARM/Raspberry Pi environments do not have prebuilt wheels, so pip falls
+# back to building from source and needs pg_config and compiler toolchain.
+# ---------------------------------------------------------------------------
+MISSING_PKGS=()
+for pkg in libpq-dev gcc python3-dev; do
+    if ! dpkg -s "${pkg}" &>/dev/null; then
+        MISSING_PKGS+=("${pkg}")
+    fi
+done
+if [[ ${#MISSING_PKGS[@]} -gt 0 ]]; then
+    echo "Installing build dependencies: ${MISSING_PKGS[*]}"
+    apt-get update
+    apt-get install -y "${MISSING_PKGS[@]}"
 fi
 
 PYTHON_BIN="$(command -v python3 || true)"
@@ -69,6 +87,10 @@ if [[ ! -d "${VENV_DIR}" ]]; then
     echo "Creating virtual environment at ${VENV_DIR} ..."
     sudo -u "${SERVICE_USER}" "${PYTHON_BIN}" -m venv "${VENV_DIR}"
 fi
+
+# Keep packaging tools current so pip can use modern wheels/build backends.
+sudo -u "${SERVICE_USER}" "${VENV_DIR}/bin/python3" -m pip install -q --upgrade pip setuptools wheel
+
 echo "Installing dependencies into virtual environment ..."
 sudo -u "${SERVICE_USER}" "${VENV_DIR}/bin/pip" install -q -r "${INSTALL_DIR}/requirements.txt"
 PYTHON_BIN="${VENV_DIR}/bin/python3"
