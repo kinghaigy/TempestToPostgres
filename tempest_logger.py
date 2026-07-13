@@ -18,8 +18,15 @@ from configparser import ConfigParser
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-import psycopg2
-from psycopg2 import sql as pgsql
+try:
+    import psycopg2
+    from psycopg2 import sql as pgsql
+except ModuleNotFoundError:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    venv_python = os.path.join(script_dir, ".venv", "bin", "python3")
+    if os.path.exists(venv_python):
+        os.execv(venv_python, [venv_python, os.path.abspath(__file__), *sys.argv[1:]])
+    raise
 
 # ---------------------------------------------------------------------------
 # Logging
