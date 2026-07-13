@@ -52,12 +52,26 @@ fi
 echo "Using Python: ${PYTHON_BIN}"
 
 # ---------------------------------------------------------------------------
+# Ensure python3-venv is available (required on Debian/Raspberry Pi OS)
+# ---------------------------------------------------------------------------
+if ! "${PYTHON_BIN}" -m venv --help &>/dev/null; then
+    echo "Installing python3-venv via apt ..."
+    apt-get install -y python3-venv
+fi
+
+# ---------------------------------------------------------------------------
 # Create virtual environment and install dependencies
 # ---------------------------------------------------------------------------
 VENV_DIR="${INSTALL_DIR}/.venv"
 if [[ ! -d "${VENV_DIR}" ]]; then
     echo "Creating virtual environment at ${VENV_DIR} ..."
     sudo -u "${SERVICE_USER}" "${PYTHON_BIN}" -m venv "${VENV_DIR}"
+fi
+# Bootstrap pip inside the venv if it was not created with one
+if [[ ! -f "${VENV_DIR}/bin/pip" ]]; then
+    echo "Bootstrapping pip inside virtual environment ..."
+    sudo -u "${SERVICE_USER}" "${PYTHON_BIN}" -m ensurepip --root "${VENV_DIR}"
+    sudo -u "${SERVICE_USER}" "${VENV_DIR}/bin/python3" -m ensurepip
 fi
 echo "Installing dependencies into virtual environment ..."
 sudo -u "${SERVICE_USER}" "${VENV_DIR}/bin/pip" install -q -r "${INSTALL_DIR}/requirements.txt"
