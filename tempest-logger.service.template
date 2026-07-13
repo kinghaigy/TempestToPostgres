@@ -1,0 +1,18 @@
+[Unit]
+Description=Tempest Weather Station UDP Logger
+Documentation=https://apidocs.tempestwx.com/reference/tempest-udp-broadcast
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=%%SERVICE_USER%%
+WorkingDirectory=%%INSTALL_DIR%%
+ExecStart=%%PYTHON_BIN%% %%INSTALL_DIR%%/tempest_logger.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
